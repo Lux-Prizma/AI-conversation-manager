@@ -594,7 +594,7 @@ class ChatGPTParserApp {
                 <div class="message-body">
                     ${thinkingHtml}
                     ${artifactsHtml}
-                    <div class="message-text">${this.formatMessageContent(answer.content)}</div>
+                    <div class="message-text">${this.formatMessageContent(answer.content, answer)}</div>
                     ${actionsHtml}
                 </div>
             </div>
@@ -651,9 +651,13 @@ class ChatGPTParserApp {
     }
 
     escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+        // Only escape the truly dangerous HTML characters
+        // This prevents XSS while keeping quotes and apostrophes readable
+        return text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
     }
 
     async selectConversation(id) {
@@ -758,9 +762,113 @@ class ChatGPTParserApp {
         this.updateUI();
     }
 
-    formatMessageContent(content) {
-        // First escape HTML to prevent XSS
-        let formatted = this.escapeHtml(content);
+    formatMessageContent(content, answer = null) {
+        let formatted = content;
+
+        // Process ChatGPT citations if answer metadata is available
+        if (answer && answer.metadata && answer.metadata.content_references) {
+            const citations = answer.metadata.content_references;
+
+            // Replace each citation marker with a clickable link
+            citations.forEach((citation, index) => {
+                if (citation.matched_text && citation.items && citation.items.length > 0) {
+                    const item = citation.items[0];
+                    const url = item.url;
+                    const title = item.title || item.attribution || 'Source';
+
+                    // Create clickable link with the title
+                    const linkHtml = `<a href="${url}" target="_blank" rel="noopener noreferrer" class="message-link" title="${title}">[${index + 1}]</a>`;
+
+                    // Replace the citation marker with the link
+                    formatted = formatted.replace(citation.matched_text, linkHtml);
+                }
+            });
+        }
+
+        // Protect LaTeX sections by temporarily replacing them with placeholders
+        const katexPlaceholders = [];
+
+        // Block math: \[...\] or $$...$$
+        formatted = formatted.replace(/\\\[([\s\S]*?)\\\]/g, (match, math) => {
+            try {
+                if (typeof katex !== 'undefined') {
+                    const html = katex.renderToString(math, { displayMode: true, throwOnError: false });
+                    const placeholder = `__KATEX_BLOCK_${katexPlaceholders.length}__`;
+                    katexPlaceholders.push(html);
+                    return placeholder;
+                }
+            } catch (e) {
+                console.error('KaTeX error:', e);
+            }
+            return match;
+        });
+
+        formatted = formatted.replace(/\$\$([\s\S]*?)\$\$/g, (match, math) => {
+            try {
+                if (typeof katex !== 'undefined') {
+                    const html = katex.renderToString(math, { displayMode: true, throwOnError: false });
+                    const placeholder = `__KATEX_BLOCK_${katexPlaceholders.length}__`;
+                    katexPlaceholders.push(html);
+                    return placeholder;
+                }
+            } catch (e) {
+                console.error('KaTeX error:', e);
+            }
+            return match;
+        });
+
+        // Inline math: \(...\) or $...$
+        formatted = formatted.replace(/\\\(([\s\S]*?)\\\)/g, (match, math) => {
+            try {
+                if (typeof katex !== 'undefined') {
+                    const html = katex.renderToString(math, { displayMode: false, throwOnError: false });
+                    const placeholder = `__KATEX_INLINE_${katexPlaceholders.length}__`;
+                    katexPlaceholders.push(html);
+                    return placeholder;
+                }
+            } catch (e) {
+                console.error('KaTeX error:', e);
+            }
+            return match;
+        });
+
+        formatted = formatted.replace(/\$([^$\n]+?)\$/g, (match, math) => {
+            try {
+                if (typeof katex !== 'undefined') {
+                    const html = katex.renderToString(math, { displayMode: false, throwOnError: false });
+                    const placeholder = `__KATEX_INLINE_${katexPlaceholders.length}__`;
+                    katexPlaceholders.push(html);
+                    return placeholder;
+                }
+            } catch (e) {
+                console.error('KaTeX error:', e);
+            }
+            return match;
+        });
+
+        // Convert URLs to clickable links
+        // This matches http://, https://, and www. URLs (but not already in markdown links)
+        formatted = formatted.replace(/(^|\s)(https?:\/\/[^\s<]+|www\.[^\s<]+)/gi, (match, prefix, url) => {
+            // Remove trailing punctuation
+            const cleanUrl = url.replace(/[.,;:!?)\]]+$/, '');
+
+            // If URL starts with www., add https://
+            const fullUrl = cleanUrl.startsWith('www.') ? 'https://' + cleanUrl : cleanUrl;
+
+            // Extract domain for display
+            let displayUrl = cleanUrl;
+            try {
+                const urlObj = new URL(fullUrl);
+                // For very long URLs, truncate the path
+                if (cleanUrl.length > 50) {
+                    displayUrl = urlObj.hostname + '/...';
+                }
+            } catch (e) {
+                // Invalid URL, use as-is
+            }
+
+            return `${prefix}<a href="${fullUrl}" target="_blank" rel="noopener noreferrer" class="message-link">${displayUrl}</a>`;
+        });
 
         // Format code blocks first (before other markdown)
         formatted = formatted.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
@@ -874,13 +982,12 @@ class ChatGPTParserApp {
         // Join all paragraphs and filter out empty ones
         formatted = paragraphs.filter(p => p).join('\n');
 
-        return formatted;
-    }
+        // Restore KaTeX placeholders with actual rendered HTML
+        formatted = formatted.replace(/__KATEX_(BLOCK|INLINE)_(\d+)__/g, (match, type, index) => {
+            return katexPlaceholders[parseInt(index)] || match;
+        });
 
-    escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+        return formatted;
     }
 
     formatDate(date) {
