@@ -609,7 +609,9 @@ class ChatGPTData {
             // Extract text from content array, filtering out tool_use blocks
             let textContent = '';
             let hasToolUse = false;
+            let hasAttachments = false; // Track file attachments
             const artifacts = []; // Store artifacts separately
+            const attachmentMarkers = []; // Store file info for display
 
             if (msg.content && Array.isArray(msg.content)) {
                 msg.content.forEach(block => {
@@ -617,7 +619,7 @@ class ChatGPTData {
                         textContent += block.text || '';
                     } else if (block.type === 'tool_use') {
                         hasToolUse = true;
-                        // Check if this is an artifact
+                        // Check if this is an artifact (old format with name='artifacts')
                         if (block.name === 'artifacts' && block.input && block.input.content) {
                             artifacts.push({
                                 id: block.input.id,
@@ -626,6 +628,22 @@ class ChatGPTData {
                                 content: block.input.content
                             });
                         }
+                        // Check if this has display_content with json_block (new file creation format)
+                        if (block.display_content && block.display_content.type === 'json_block' && block.display_content.json_block) {
+                            try {
+                                // Parse the JSON string
+                                const jsonData = JSON.parse(block.display_content.json_block);
+                                // Create artifact in the same format as the UI expects
+                                artifacts.push({
+                                    id: block.id || `artifact_${artifacts.length}`,
+                                    type: jsonData.language || 'text',
+                                    title: jsonData.filename || block.name || 'Artifact',
+                                    content: jsonData.code || jsonData.content || ''
+                                });
+                            } catch (error) {
+                                console.warn('Failed to parse json_block:', error);
+                            }
+                        }
                     }
                     // Ignore tool_result, token_budget, and other non-text blocks
                 });
@@ -633,8 +651,31 @@ class ChatGPTData {
                 textContent = msg.content;
             }
 
-            // Skip messages that have neither text content nor tool_use
-            if (!textContent.trim() && !hasToolUse) {
+            // Check for file attachments
+            if (msg.attachments && Array.isArray(msg.attachments) && msg.attachments.length > 0) {
+                hasAttachments = true;
+                msg.attachments.forEach(att => {
+                    const fileName = att.file_name || att.extracted_content?.substring(0, 30) + '...' || 'file';
+                    attachmentMarkers.push(`[file: ${fileName}]`);
+                    // Append extracted content if available
+                    if (att.extracted_content) {
+                        textContent += (textContent ? '\n\n' : '') + att.extracted_content;
+                    }
+                });
+            }
+
+            // Check for files array
+            if (msg.files && Array.isArray(msg.files) && msg.files.length > 0) {
+                hasAttachments = true;
+                msg.files.forEach(file => {
+                    if (file.file_name) {
+                        attachmentMarkers.push(`[file: ${file.file_name}]`);
+                    }
+                });
+            }
+
+            // Skip messages that have neither text content, tool_use, nor attachments
+            if (!textContent.trim() && !hasToolUse && !hasAttachments) {
                 return;
             }
 
@@ -642,14 +683,20 @@ class ChatGPTData {
 
             if (isUser) {
                 // Start a new pair
+                // Add attachment markers to content for display
+                const displayContent = attachmentMarkers.length > 0
+                    ? attachmentMarkers.join(' ') + (textContent ? '\n\n' + textContent : '')
+                    : textContent;
+
                 currentPair = {
                     id: msg.uuid || `msg_${pairIndex}`,
                     question: {
                         id: msg.uuid,
                         role: 'user',
-                        content: textContent,
+                        content: displayContent || '[File upload]',
                         timestamp: timestamp,
-                        metadata: msg
+                        metadata: msg,
+                        hasAttachments: hasAttachments // Store flag for potential future UI use
                     },
                     answers: [],
                     index: pairIndex++,
