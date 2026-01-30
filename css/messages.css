@@ -1,0 +1,424 @@
+/* ChatGPT Parser - Message Styles */
+
+/* ========== MESSAGES CONTAINER ========== */
+.messages-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 0;
+}
+
+.messages-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.messages-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.messages-container::-webkit-scrollbar-thumb {
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+}
+
+/* ========== MESSAGE STYLES ========== */
+.message {
+    padding: 28px 20px;
+}
+
+/* ChatGPT style: User messages have bubble background, AI messages don't */
+.message.user {
+    background-color: transparent;
+}
+
+.message.user .message-content {
+    justify-content: flex-end;
+}
+
+.message.user .message-body {
+    background-color: var(--user-msg-bg);
+    border-radius: 12px;
+    padding: 14px 18px;
+    max-width: 65%;
+}
+
+.message.assistant {
+    background-color: transparent;
+}
+
+.message.assistant .message-body {
+    background-color: transparent;
+    padding: 0;
+}
+
+/* ========== MESSAGE CONTENT ========== */
+.message-content {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+}
+
+.message-index {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: 600;
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.message-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.message-text {
+    color: var(--text-primary);
+    font-size: 16px;
+    line-height: 1.6;
+    word-wrap: break-word;
+}
+
+.message-text p {
+    margin-bottom: 14px;
+}
+
+.message-text p:last-child {
+    margin-bottom: 0;
+}
+
+/* ========== MARKDOWN STYLING ========== */
+
+/* Headers */
+.message-text h1,
+.message-text h2,
+.message-text h3,
+.message-text h4,
+.message-text h5,
+.message-text h6 {
+    color: var(--text-primary);
+    margin-top: 24px;
+    margin-bottom: 16px;
+    font-weight: 700;
+}
+
+.message-text h1 {
+    font-size: 36px;
+    line-height: 1.2;
+}
+
+.message-text h2 {
+    font-size: 30px;
+    line-height: 1.3;
+}
+
+.message-text h3 {
+    font-size: 24px;
+    line-height: 1.4;
+}
+
+.message-text h4 {
+    font-size: 20px;
+    line-height: 1.4;
+}
+
+.message-text h5 {
+    font-size: 18px;
+    line-height: 1.5;
+}
+
+.message-text h6 {
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+/* Text formatting */
+.message-text strong {
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.message-text em {
+    font-style: italic;
+}
+
+/* Lists */
+.message-text ul,
+.message-text ol {
+    margin: 16px 0;
+    padding-left: 28px;
+    list-style: none;
+}
+
+.message-text ul {
+    padding-left: 20px;
+}
+
+.message-text li {
+    margin-bottom: 8px;
+    color: var(--text-primary);
+    position: relative;
+    padding-left: 18px;
+}
+
+.message-text ul li::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    color: var(--text-primary);
+    font-weight: bold;
+}
+
+/* Ordered lists - custom numbering */
+.message-text ol {
+    padding-left: 0;
+    list-style: none;
+}
+
+.message-text ol li {
+    padding-left: 0;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+.message-text ol li .list-number {
+    color: var(--text-primary);
+    font-weight: bold;
+    margin-right: 8px;
+}
+
+.message-text ol li p {
+    margin: 0;
+    display: inline;
+}
+
+/* Blockquote */
+.message-text blockquote {
+    margin: 16px 0;
+    padding: 12px 16px;
+    border-left: 4px solid var(--primary-color);
+    background-color: rgba(59, 130, 246, 0.1);
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+/* Tables */
+.message-text table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 16px 0;
+    font-size: 16px;
+}
+
+.message-text th,
+.message-text td {
+    border: 1px solid var(--border-color);
+    padding: 10px 14px;
+    text-align: left;
+    color: var(--text-primary);
+}
+
+.message-text th {
+    background-color: var(--bg-secondary);
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.message-text tr:nth-child(even) {
+    background-color: var(--bg-secondary);
+}
+
+/* Horizontal rule */
+.message-text hr {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: 16px 0;
+}
+
+/* Code blocks */
+.message-text pre {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 18px;
+    overflow-x: auto;
+    margin: 16px 0;
+}
+
+.message-text code {
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 15px;
+    color: var(--text-primary);
+}
+
+/* Links */
+.message-text a.message-link {
+    color: #7ab8ff;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.message-text a.message-link:hover {
+    color: #6aa0e0;
+    border-bottom-color: #6aa0e0;
+}
+
+.message-text a.message-link:visited {
+    color: #c58aff;
+}
+
+.message-text a.message-link:visited:hover {
+    color: #b07ae0;
+    border-bottom-color: #b07ae0;
+}
+
+/* ========== THINKING SECTION ========== */
+.thinking-section {
+    margin-bottom: 20px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--bg-secondary);
+    overflow: hidden;
+}
+
+.thinking-toggle {
+    width: 100%;
+    padding: 12px 16px;
+    background-color: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.thinking-toggle:hover {
+    background-color: var(--hover-bg);
+    color: var(--text-primary);
+}
+
+.thinking-toggle svg {
+    transition: transform 0.3s ease;
+}
+
+.thinking-section.collapsed .thinking-toggle svg {
+    transform: rotate(-90deg);
+}
+
+.thinking-section.collapsed .thinking-content {
+    display: none;
+}
+
+.thinking-content {
+    padding: 0 16px 16px 16px;
+    border-top: 1px solid var(--border-color);
+}
+
+.thinking-content .message-text {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-top: 12px;
+}
+
+/* ========== MESSAGE ACTIONS ========== */
+.message-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color);
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.model-badge {
+    padding: 5px 12px;
+    background-color: var(--btn-primary);
+    color: white;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.message-action-btn {
+    padding: 8px 14px;
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: var(--text-secondary);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.message-action-btn:hover {
+    background-color: var(--hover-bg);
+    color: var(--text-primary);
+}
+
+.message-action-btn.delete:hover {
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+.message-action-btn.star {
+    color: var(--text-muted);
+}
+
+.message-action-btn.star.starred {
+    color: #fbbf24;
+    border-color: #fbbf24;
+}
+
+.timestamp-display {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 8px;
+}
+
+/* ========== PAIR CONTAINER ========== */
+.pair-container {
+    border: 2px solid transparent;
+    border-radius: 8px;
+    margin: 8px 0;
+    transition: border-color 0.3s ease;
+}
+
+.pair-container.highlighted-starred {
+    border-color: #fbbf24;
+    background-color: rgba(251, 191, 36, 0.05);
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.1);
+}
+
+/* ========== SEARCH HIGHLIGHT ========== */
+.search-highlight {
+    background-color: #ffeb3b;
+    color: #000;
+    border-radius: 2px;
+    padding: 0 2px;
+    font-weight: 500;
+}
+
+.search-highlight.active {
+    background-color: #ff9800;
+    color: #fff;
+    box-shadow: 0 0 0 2px rgba(255, 152, 0, 0.3);
+}

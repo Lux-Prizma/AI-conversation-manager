@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LLM Conversation Organizer</title>
-    <link rel="stylesheet" href="styles.css">
+    <!-- Modular CSS -->
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/messages.css">
     <!-- KaTeX for equation rendering -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
@@ -509,5 +513,12 @@
             </div>
         </div>
     </div>
+
+    <!-- Legacy data.js and indexeddb.js (will be modularized later) -->
+    <script src="indexeddb.js"></script>
+    <script src="data.js"></script>
+
+    <!-- Modular Application (ES Modules) -->
+    <script type="module" src="js/main.js"></script>
 </body>
 </html>
